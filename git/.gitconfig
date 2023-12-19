@@ -1,0 +1,9 @@
+[user]
+  name = Tylor Stewart
+  email = trjstewart@gmail.com
+[core]
+  editor = code --wait
+  autocrlf = false
+  pager = cat
+[color]
+  ui = true
