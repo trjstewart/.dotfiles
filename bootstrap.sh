@@ -41,9 +41,9 @@ if is_linux; then
     print_message_fixed_width " >> Installing prerequisites to use Brew..."
     sudo apt-get install -y build-essential procps curl file git > "$LOG_PREFIX-apt-get-install.log" 2>&1; print_last_command_success_or_failure
     print_message_fixed_width " >> Cleaning up unused packages..."
-    sudo apt-get autoremove > "$LOG_PREFIX-apt-get-autoremove.log" 2>&1; print_last_command_success_or_failure
+    sudo apt-get autoremove -y > "$LOG_PREFIX-apt-get-autoremove.log" 2>&1; print_last_command_success_or_failure
     print_message_fixed_width " >> Cleaning up unused cache files..."
-    sudo apt-get autoclean > "$LOG_PREFIX-apt-get-autoclean.log" 2>&1; print_last_command_success_or_failure
+    sudo apt-get autoclean -y > "$LOG_PREFIX-apt-get-autoclean.log" 2>&1; print_last_command_success_or_failure
   fi
 fi
 

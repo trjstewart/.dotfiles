@@ -134,7 +134,7 @@ install_brew() { # TODO: This could do with some improvement. It definitely does
   else
     brew update > "$LOG_PREFIX-brew-update.log" 2>&1
     print_last_command_success_or_failure
-    print_warning "    ! Brew is already installed, updated instead...         "
+    print_warning "    ! Brew is already installed, updated instead"
   fi
 }
 
