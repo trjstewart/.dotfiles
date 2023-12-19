@@ -201,4 +201,63 @@ unpack_with_stow() {
   done
 }
 
+install_zsh() {
+  print_message_fixed_width " >> Installing Zsh..."
+
+  if ! silent command -v "zsh"; then
+    brew install zsh > "$LOG_PREFIX-brew-install-zsh.log" 2>&1
+    print_last_command_success_or_failure
+  else
+    print_success "✔"
+    print_warning "    ! ZSH is already installed"
+  fi
+}
+
+install_oh_my_zsh() {
+  print_message_fixed_width " >> Installing Oh My Zsh..."
+  
+  if ! [[ -e ~/.oh-my-zsh ]]; then
+    /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended > "$LOG_PREFIX-oh-my-zsh-install.log" 2>&1
+    print_last_command_success_or_failure
+  else
+    print_success "✔"
+    print_warning "    ! Oh My Zsh is already installed"
+  fi
+}
+
+switch_default_shell_to_zsh() {
+  print_message_fixed_width " >> Switching default shell to Zsh..."
+
+  ERRORS=()
+  MESSAGES=()
+
+  if ! silent command -v "zsh"; then ERRORS+=("    ! Unable to find Zsh command"); fi
+  ZSH_SHELL_PATH="$(which zsh)"
+
+  if ! silent grep "$ZSH_SHELL_PATH" < /etc/shells; then
+    echo "$ZSH_SHELL_PATH" | silent sudo tee -a /etc/shells
+    if [ $? -eq 1 ]; then ERRORS+=("    ! Unable to add Zsh shell path to /etc/shells"); fi
+  else
+    MESSAGES+=("    ! Zsh shell path is already in /etc/shells")
+  fi
+
+  if ((${#ERRORS[@]})); then
+    print_error "✗"
+    for ERROR in "${ERRORS[@]}"; do print_error "$ERROR"; done
+    exit 1
+  fi
+
+  if ! [[ "$SHELL" == *"zsh" ]]; then
+    sudo chsh -s "$(which zsh)" > "$LOG_PREFIX-chsh.log" 2>&1
+    print_last_command_success_or_failure
+  else
+    print_success "✔"
+    print_warning "    ! Default shell is already ZSH"
+  fi
+
+  if ((${#MESSAGES[@]})); then
+    for MESSAGE in "${MESSAGES[@]}"; do print_warning "$MESSAGE"; done
+  fi
+}
+
 [[ "${BASH_SOURCE[0]}" != "${0}" ]] && print_info ">>> ${BASH_SOURCE[0]#"./"} has been sourced...\n"

@@ -61,6 +61,16 @@ create_gitconfig "$(get_email)"
 print_info "\nLink dotfiles with stow"
 unpack_with_stow
 
+print_info "\nSetup Zsh Shell"
+install_zsh
+install_oh_my_zsh
+switch_default_shell_to_zsh
+print_message_fixed_width " >> Installing zsh auto-suggestions..."
+brew install zsh-autosuggestions > "$LOG_PREFIX-brew-install-zsh-autosuggestions.log" 2>&1
+print_last_command_success_or_failure
+print_message_fixed_width " >> Installing zsh syntax highlighting..."
+brew install zsh-syntax-highlighting > "$LOG_PREFIX-brew-install-zsh-syntax-highlighting.log" 2>&1
+print_last_command_success_or_failure
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Job's Done!
