@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+START_TIME=$(date +%s)
+LOG_DIRECTORY="logs"
+LOG_PREFIX="$LOG_DIRECTORY/$START_TIME"
+
 # text formatting and colours - https://misc.flogisoft.com/bash/tip_colors_and_formatting
 format_set_bright='\e[1m'
 format_set_dim='\e[2m'
