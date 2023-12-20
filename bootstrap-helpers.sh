@@ -248,7 +248,7 @@ switch_default_shell_to_zsh() {
   fi
 
   if ! [[ "$SHELL" == *"zsh" ]]; then
-    sudo chsh -s "$(which zsh)" > "$LOG_PREFIX-chsh.log" 2>&1
+    sudo chsh -s $(which zsh) $USER > "$LOG_PREFIX-chsh.log" 2>&1
     print_last_command_success_or_failure
   else
     print_success "✔"
