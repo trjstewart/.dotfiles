@@ -1,0 +1,5 @@
+plugins=(
+  aliases
+  asdf
+  themes
+)

@@ -1,3 +1,6 @@
 tap "homebrew/bundle"
 brew "gcc"
 brew "stow"
+brew "exa"
+brew "asdf"
+brew "bat"
