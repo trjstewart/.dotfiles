@@ -1,2 +1,2 @@
-# Local configuration files
-*.local
+logs
+Brewfile.lock.json

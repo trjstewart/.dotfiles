@@ -1,1 +1,4 @@
-alias ls="ls -alh"
+alias ls="eza -alh"
+alias cat=bat
+alias code=code-insiders
+alias op=op.exe
