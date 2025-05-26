@@ -2,8 +2,9 @@
 source ~/.config/zsh/options.zsh
 source ~/.config/zsh/env.zsh
 
-source ~/.oh-my-zsh/oh-my-zsh.sh
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+source $ZSH/oh-my-zsh.sh
+if [[ "$(uname -s)" == "Darwin" ]]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+if [[ "$(uname -s)" == "Linux" ]]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi
 source "$(brew --prefix asdf)"/libexec/asdf.sh
 
-for file in ~/.config/zsh/*; do source "$file"; done
+for file in ~/.config/zsh/*.zsh; do source "$file"; done

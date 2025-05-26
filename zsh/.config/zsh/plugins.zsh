@@ -1,5 +1,8 @@
 plugins=(
   aliases
   asdf
-  themes
+  aws
+  git
+  zsh-autosuggestions
+  zsh-syntax-highlighting # this must be last - their docs say so
 )

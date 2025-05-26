@@ -3,7 +3,7 @@
   email = __EMAIL_ADDRESS__
 [core]
   editor = code --wait
-  autocrlf = false
+  autocrlf = input
   pager = cat
 [color]
   ui = true

@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
 START_TIME=$(date +%s)
-LOG_DIRECTORY="logs"
+LOG_DIRECTORY="$(pwd)/logs"
 LOG_PREFIX="$LOG_DIRECTORY/$START_TIME"
+MESSAGE_LINE_FIXED_WIDTH=75
 
-# text formatting and colours - https://misc.flogisoft.com/bash/tip_colors_and_formatting
+# ---------------------------------------------------------------------------------------------------------------------
+# Styling and Message Helpers (https://misc.flogisoft.com/bash/tip_colors_and_formatting)
+# ---------------------------------------------------------------------------------------------------------------------
 format_set_bright='\e[1m'
 format_set_dim='\e[2m'
 format_set_underlined='\e[4m'
@@ -75,19 +78,17 @@ print_info_fixed_width() { print_with_fixed_width "${foreground_magenta}$*${form
 print_warning_fixed_width() { print_with_fixed_width "${foreground_yellow}$*${format_reset_all}"; }
 print_error_fixed_width() { print_with_fixed_width "${foreground_red}$*${format_reset_all}"; }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Utility Functions
+# ---------------------------------------------------------------------------------------------------------------------
 print_error_and_exit() { print_error "$*\n"; exit 1; }
 request_sudo_access() { if ! sudo -v; then print_error_and_exit "You must have sudo access to run this script!"; fi }
-silent() { "$@" > /dev/null  2>&1; }
 get_system_os() { uname -s; }
 is_mac() { if [[ "$(get_system_os)" == "Darwin" ]]; then return 0; else return 1; fi }
 is_linux() { if [[ "$(get_system_os)" == "Linux" ]]; then return 0; else return 1; fi }
 is_linux_ubuntu() { if [[ "$(lsb_release -i | tr -d '\t' | grep -Po '(?<=:).*')" == "Ubuntu" ]]; then return 0; else return 1; fi }
 is_wsl() { if grep -q microsoft /proc/version; then return 0; else return 1; fi }
-
-verify_location() {
-  if [[ ! "${PWD##*/}" == ".dotfiles" ]]; then print_error_and_exit "You must be in the .dotfiles folder to run the bootstrap script!"; fi
-  if [[ ! $(dirname "$PWD") == "$HOME" ]]; then print_error_and_exit "The .dotfiles folder must be located inside your home directory!"; fi
-}
+silent() { "$@" > /dev/null  2>&1; }
 
 print_last_command_success_or_failure() {
   LAST_STATUS_CODE=$?
@@ -106,40 +107,16 @@ print_last_command_success_or_failure() {
   fi
 }
 
-apt_get_update() {
-  UNIX_TIME=$(date +%s)
-  LAST_UPDATED=$(stat --format="%X" /var/cache/apt/pkgcache.bin)
-  TIME_DIFF=$((UNIX_TIME - LAST_UPDATED))
-
-  if [[ "${TIME_DIFF}" -gt 3600 ]]; then
-    sudo apt-get update -y > "$LOG_PREFIX-apt-get-update.log" 2>&1
-    print_last_command_success_or_failure
-  else
-    print_success "✔"
-    print_warning "    ! apt was already updated in the past hour"
-  fi
-}
-
-install_brew() { # TODO: This could do with some improvement. It definitely doesn't handle errors well.
-  print_message_fixed_width " >> Installing Brew..."
-  if ! silent command -v "brew"; then
-    export CI=1
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" > "$LOG_PREFIX-brew-install.log" 2>&1
-    print_last_command_success_or_failure
-    unset CI
-
-    # post install steps
-    (echo; echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"') >> /home/elliot/.bashrc
-    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-  else
-    brew update > "$LOG_PREFIX-brew-update.log" 2>&1
-    print_last_command_success_or_failure
-    print_warning "    ! Brew is already installed, updated instead"
-  fi
-}
-
 determine_personal_or_work() {
-  if is_wsl; then
+  if is_mac; then
+    # This is gross, but it works for now - we're looking for the organization name in the configuration profile
+    local ORGANIZATION=$(sudo profiles show -type=configuration | awk '/payload\[.*\] name[[:space:]]*=[[:space:]]*Configuration Profile/ {f=1} f && /payload\[.*\] organization[[:space:]]*=/ {sub(/.*= /,""); print; exit}')
+    if [[ "$ORGANIZATION" == "ndis.gov.au" ]]; then
+      echo "work_ndia"
+      return 0
+    fi
+
+  elif is_wsl; then
     DOMAIN=$(powershell.exe '(Get-WmiObject win32_computersystem).Domain' | tr -d '\r')
     case $DOMAIN in
       ndia.gov.au)
@@ -194,11 +171,39 @@ create_gitconfig() {
 
 unpack_with_stow() {
   for point in $(echo */); do
-    if [[ "$point" == "$LOG_DIRECTORY/" || "$point" == "templates/" ]]; then continue; fi
+    if [[ "$point" == "logs/" || "$point" == "templates/" ]]; then continue; fi
     print_message_fixed_width " >> Linking ${point/\//}..."
-    silent stow $point # for some reason logfile creation fails if we try to direct output to a file
+    silent stow $point # TODO: for some reason log file creation fails if we try to direct output to a file
     print_last_command_success_or_failure
   done
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Installation Functions
+# ---------------------------------------------------------------------------------------------------------------------
+install_brew() {
+  print_message_fixed_width " >> Installing Brew..."
+
+  if ! silent command -v "brew"; then # Brew is not installed
+    export CI=1
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" > "$LOG_PREFIX-brew-install.log" 2>&1
+    print_last_command_success_or_failure
+    unset CI
+
+    print_message_fixed_width "  >> Sourcing Brew for the current shell..."
+    if is_mac; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif is_linux; then
+      eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    fi
+    print_last_command_success_or_failure
+
+  else # Brew is already installed, update instead
+    print_last_command_success_or_failure 1
+    print_warning_fixed_width "  ! Brew is already installed, updating instead..."
+    brew update > "$LOG_PREFIX-brew-update.log" 2>&1
+    print_last_command_success_or_failure
+  fi
 }
 
 install_zsh() {
@@ -208,20 +213,20 @@ install_zsh() {
     brew install zsh > "$LOG_PREFIX-brew-install-zsh.log" 2>&1
     print_last_command_success_or_failure
   else
-    print_success "✔"
-    print_warning "    ! ZSH is already installed"
+    print_last_command_success_or_failure 1
+    print_warning "  ! ZSH is already installed"
   fi
 }
 
 install_oh_my_zsh() {
   print_message_fixed_width " >> Installing Oh My Zsh..."
-  
+
   if ! [[ -e ~/.oh-my-zsh ]]; then
-    /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended > "$LOG_PREFIX-oh-my-zsh-install.log" 2>&1
+    /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" "" --unattended --keep-zshrc > "$LOG_PREFIX-oh-my-zsh-install.log" 2>&1
     print_last_command_success_or_failure
   else
     print_success "✔"
-    print_warning "    ! Oh My Zsh is already installed"
+    print_warning "  ! Oh My Zsh is already installed"
   fi
 }
 
@@ -231,14 +236,14 @@ switch_default_shell_to_zsh() {
   ERRORS=()
   MESSAGES=()
 
-  if ! silent command -v "zsh"; then ERRORS+=("    ! Unable to find Zsh command"); fi
+  if ! silent command -v "zsh"; then ERRORS+=("  ! Unable to find Zsh command"); fi
   ZSH_SHELL_PATH="$(which zsh)"
 
   if ! silent grep "$ZSH_SHELL_PATH" < /etc/shells; then
     echo "$ZSH_SHELL_PATH" | silent sudo tee -a /etc/shells
-    if [ $? -eq 1 ]; then ERRORS+=("    ! Unable to add Zsh shell path to /etc/shells"); fi
+    if [ $? -eq 1 ]; then ERRORS+=("  ! Unable to add Zsh shell path to /etc/shells"); fi
   else
-    MESSAGES+=("    ! Zsh shell path is already in /etc/shells")
+    MESSAGES+=("  ! Zsh shell path is already in /etc/shells")
   fi
 
   if ((${#ERRORS[@]})); then
@@ -252,11 +257,47 @@ switch_default_shell_to_zsh() {
     print_last_command_success_or_failure
   else
     print_success "✔"
-    print_warning "    ! Default shell is already ZSH"
+    print_warning "  ! Default shell is already Zsh"
   fi
 
   if ((${#MESSAGES[@]})); then
     for MESSAGE in "${MESSAGES[@]}"; do print_warning "$MESSAGE"; done
+  fi
+}
+
+install_or_update_oh_my_zsh_plugin() {
+  local PLUGIN_URL=$1
+  local PLUGIN_NAME=$(echo "$PLUGIN_URL" | awk -F'/' '{print $NF}')
+  local PLUGIN_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/$PLUGIN_NAME"
+  local LOG_FILE="$LOG_PREFIX-oh-my-zsh-plugins.log"
+
+  if [[ ! -d "$PLUGIN_DIR" ]]; then
+    print_message_fixed_width " >> $PLUGIN_NAME..."
+    git clone "$PLUGIN_URL" "$PLUGIN_DIR" > "$LOG_FILE" 2>&1
+    print_last_command_success_or_failure
+  else
+    print_message_fixed_width " >> Updating $PLUGIN_NAME..."
+    cd "$PLUGIN_DIR" || print_error_and_exit "Couldn't change directory to $PLUGIN_DIR"
+
+    ERRORS=()
+
+    git fetch --all > "$LOG_FILE" 2>&1
+    if [ $? -ne 0 ]; then
+      ERRORS+=("  ! Unable to fetch updates for $PLUGIN_NAME")
+    fi
+
+    git reset --hard "$(git remote show origin | awk '/HEAD branch/ {print $NF}')" > "$LOG_FILE" 2>&1
+    if [ $? -ne 0 ]; then
+      ERRORS+=("  ! Unable to reset $PLUGIN_NAME to the latest version")
+    fi
+
+    if ((${#ERRORS[@]})); then
+      print_error "✗"
+      for ERROR in "${ERRORS[@]}"; do print_error "$ERROR"; done
+      exit 1
+    else
+      print_success "✔"
+    fi
   fi
 }
 

@@ -3,7 +3,7 @@
   email = trjstewart@gmail.com
 [core]
   editor = code --wait
-  autocrlf = false
+  autocrlf = input
   pager = cat
 [color]
   ui = true
