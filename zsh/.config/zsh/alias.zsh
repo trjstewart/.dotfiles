@@ -1,4 +1,7 @@
 alias ls="eza -alh"
 alias cat=bat
-alias code=code-insiders
 alias op=op.exe
+
+if type "code-insiders" > /dev/null; then
+  alias code=code-insiders
+fi
