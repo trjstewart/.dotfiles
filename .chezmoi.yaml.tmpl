@@ -1,0 +1,13 @@
+{{- $personalDevice := promptBoolOnce . "personalDevice" "Is this a personal device" true -}}
+{{- $email := promptStringOnce . "email" "What is the primary email address you'd like to use on this device" "trjstewart@gmail.com" -}}
+{{- $onePasswordAvailable := promptBoolOnce . "onePasswordAvailable" "Is the 1Password Desktop App installed on this device?" true -}}
+
+# Persist the source dir so future `chezmoi` commands don't need --source.
+# .chezmoi.sourceDir = wherever this was initialised from (e.g. ~/.dotfiles).
+sourceDir: {{ .chezmoi.sourceDir | quote }}
+progress: true
+
+data:
+  personalDevice: {{ $personalDevice }}
+  email: {{ $email | quote }}
+  onePasswordAvailable: {{ $onePasswordAvailable }}
