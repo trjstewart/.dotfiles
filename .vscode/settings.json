@@ -1,0 +1,6 @@
+{
+  "cSpell.words": ["chezmoi", "Initialising", "initialises", "trjstewart"],
+  "files.associations": {
+    "*.yaml.tmpl": "helm"
+  }
+}
