@@ -26,13 +26,13 @@ The [Microsoft Store](https://apps.microsoft.com/detail/9pdxgncfsczv?hl=en-US&gl
 [chezmoi](https://www.chezmoi.io) provides a handy helper script to get us started. The one-liner below installs chezmoi to `./bin` and initialises my system bootstrap and dotfiles. Technically this can be run from anywhere, but run it from your home directory.
 
 ```sh
-sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply trjstewart/.dotfiles
+sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply --source="~/.dotfiles" trjstewart/.dotfiles
 ```
 
 Temporary script that sources the working feature branch.
 
 ```sh
-sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply --source="$HOME/.dotfiles" --branch feature/chezmoi trjstewart/.dotfiles
+sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply --source="~/.dotfiles" --branch feature/chezmoi trjstewart/.dotfiles
 ```
 
 ### Day to day use
