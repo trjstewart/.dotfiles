@@ -29,4 +29,10 @@ The [Microsoft Store](https://apps.microsoft.com/detail/9pdxgncfsczv?hl=en-US&gl
 sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply trjstewart/.dotfiles
 ```
 
+Temporary script that sources the working feature branch.
+
+```sh
+sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply --source="$HOME/.dotfiles" --branch feature/chezmoi trjstewart/.dotfiles
+```
+
 ### Day to day use
