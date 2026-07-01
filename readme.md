@@ -23,7 +23,7 @@ The [Microsoft Store](https://apps.microsoft.com/detail/9pdxgncfsczv?hl=en-US&gl
 
 ### Installing and Initialising
 
-[chezmoi](https://www.chezmoi.io) provides a handy helper script to get us started. The one-liner below installs and initialises my system bootstrap and dotfiles.
+[chezmoi](https://www.chezmoi.io) provides a handy helper script to get us started. The one-liner below installs chezmoi to `./bin` and initialises my system bootstrap and dotfiles. Technically this can be run from anywhere, but run it from your home directory.
 
 ```sh
 sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply trjstewart/.dotfiles
