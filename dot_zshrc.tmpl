@@ -1,0 +1,21 @@
+# This file is managed by chezmoi. Do not edit it directly.
+
+# Add ~/bin to the PATH if it exists
+path+=(~/bin(N/))
+
+{{ if .homebrewDirectory -}}
+# Load Homebrew commands, completions, and functions
+eval "$({{ .homebrewDirectory }}/bin/brew shellenv)"
+{{- end }}
+
+# Load mise and activate per-project tool versions
+if command -v mise >/dev/null 2>&1; then
+  eval "$(mise activate zsh)"
+elif [[ -f ~/.local/bin/mise ]]; then
+  eval "$(~/.local/bin/mise activate zsh)"
+fi
+
+# Load all zsh configuration files in ~/.config/zsh
+for file in ~/.config/zsh/*(N.); do
+  source "$file"
+done

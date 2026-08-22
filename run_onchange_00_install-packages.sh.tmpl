@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# ! This script runs any time it's changed. The implimentation below MUST be idempotent.
+#
+echo "Installing packages..."
+
+sudo -v
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Bootstrap Common Prerequisite Packages
+# ------------------------------------------------------------------------------------------------------------------------
+if ! command -v brew &> /dev/null; then
+  echo "🍺 Homebrew not found. Starting installation..."
+  NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" </dev/tty
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+    echo "🍺 Homebrew is already installed."
+fi
+
+if ! command -v mise &> /dev/null; then
+  echo "📦 Mise not found. Starting installation..."
+  curl https://mise.run | sh
+  eval "$(~/.local/bin/mise activate bash)"
+else
+    echo "📦 Mise is already installed."
+fi
+
+common_packages=(
+  git
+  zsh
+  mise
+  starship
+  bat
+  eza
+)
+
+# ------------------------------------------------------------------------------------------------------------------------
+# Install macOS Specific Packages
+# ------------------------------------------------------------------------------------------------------------------------
+{{ if eq .chezmoi.os "darwin" }}
+
+packages=(
+  "${common_packages[@]}"
+  htop
+)
+
+echo "Installing the following packages from homebrew: ${packages[*]}"
+brew install -y "${packages[@]}"
+
+casks=(
+  font-jetbrains-mono-nerd-font
+  scroll-reverser
+  visual-studio-code@insiders
+  gitkraken
+)
+
+echo "Installing the following casks from homebrew: ${casks[*]}"
+brew install --cask -y "${casks[@]}"
+{{ end }}

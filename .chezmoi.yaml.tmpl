@@ -2,6 +2,18 @@
 {{- $email := promptStringOnce . "email" "What is the primary email address you'd like to use on this device" "trjstewart@gmail.com" -}}
 {{- $onePasswordAvailable := promptBoolOnce . "onePasswordAvailable" "Is the 1Password Desktop App installed on this device?" true -}}
 
+# Determine the Homebrew directory based on OS and architecture
+{{- $homebrewDirectory := "" -}}
+{{- if eq .chezmoi.os "darwin" -}}
+  {{- if eq .chezmoi.arch "arm64" -}}
+    {{- $homebrewDirectory = "/opt/homebrew" -}}
+  {{- else -}}
+    {{- $homebrewDirectory = "/usr/local" -}}
+  {{- end -}}
+{{- else if eq .chezmoi.os "linux" -}}
+  {{- $homebrewDirectory = "/home/linuxbrew/.linuxbrew" -}}
+{{- end -}}
+
 progress: true
 sourceDir: {{ .chezmoi.sourceDir | quote }}
 
@@ -9,4 +21,4 @@ data:
   personalDevice: {{ $personalDevice }}
   email: {{ $email | quote }}
   onePasswordAvailable: {{ $onePasswordAvailable }}
-  testing: true
+  homebrewDirectory: {{ $homebrewDirectory | quote }}

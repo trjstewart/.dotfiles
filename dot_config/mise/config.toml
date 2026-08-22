@@ -1,0 +1,8 @@
+[tools]
+node = "latest"
+terraform = "latest"
+
+[settings]
+experimental = true
+status.show_env = true
+status.show_tools = true

@@ -1,6 +1,12 @@
 {
   "cSpell.words": ["chezmoi", "Initialising", "initialises", "trjstewart"],
   "files.associations": {
-    "*.yaml.tmpl": "helm"
+    "*.yaml.tmpl": "yaml",
+    "*.sh.tmpl": "shellscript",
+    "*.json.tmpl": "jsonc",
+    "*.toml.tmpl": "toml",
+    ".chezmoiignore": "ignore",
+    ".chezmoiignore.tmpl": "ignore",
+    "*zshrc.tmpl": "shellscript"
   }
 }
