@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# ! This script runs any time it's changed. The implementation below MUST be idempotent.
+
+echo "Setting the default shell..."
+
+sudo -v
+
+# Resolved from the template rather than `brew --prefix` because this script runs in its own
+# process, where Homebrew hasn't been added to the PATH yet.
+zsh_path="{{ .homebrewDirectory }}/bin/zsh"
+user="$(id -un)"
+
+if [[ ! -x "$zsh_path" ]]; then
+  echo "🐚 Zsh was not found at $zsh_path. Skipping."
+  exit 0
+fi
+
+# chsh refuses any shell that isn't registered in /etc/shells.
+if grep -qxF "$zsh_path" /etc/shells; then
+  echo "🐚 Zsh is already a registered login shell."
+else
+  echo "🐚 Registering zsh as a login shell..."
+  echo "$zsh_path" | sudo tee -a /etc/shells > /dev/null
+fi
+
+{{ if eq .chezmoi.os "darwin" -}}
+current_shell="$(dscl . -read "/Users/$user" UserShell | awk '{print $2}')"
+{{- else -}}
+current_shell="$(getent passwd "$user" | cut -d: -f7)"
+{{- end }}
+
+if [[ "$current_shell" == "$zsh_path" ]]; then
+  echo "🐚 Zsh is already the default shell."
+else
+  echo "🐚 Changing the default shell from $current_shell to zsh..."
+  sudo chsh -s "$zsh_path" "$user"
+  echo "🐚 Restart your session for the change to take effect."
+fi
